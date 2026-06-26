@@ -1,27 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { Routes, Route, NavLink } from "react-router-dom";
 import { Sun, Moon, Layers } from "lucide-react";
+import { BrowsePage } from "@/pages/BrowsePage";
+import { SubmitPage } from "@/pages/SubmitPage";
 
 // ------------------------------------------------------------------ //
-// Stub pages — structure is final; content filled in next responses.   //
-// Each renders <main id="main-content"> which is the skip-link target. //
+// Remaining stub pages — DetailPage and NotFound filled next response  //
 // ------------------------------------------------------------------ //
-
-function BrowsePage() {
-  return (
-    <main id="main-content" className="page-shell">
-      <h1 style={{ fontSize: "var(--text-xl)", marginBottom: "var(--space-4)" }}>Browse</h1>
-    </main>
-  );
-}
-
-function SubmitPage() {
-  return (
-    <main id="main-content" className="page-shell">
-      <h1 style={{ fontSize: "var(--text-xl)", marginBottom: "var(--space-4)" }}>Submit</h1>
-    </main>
-  );
-}
 
 function DetailPage() {
   return (
@@ -101,7 +86,6 @@ function Nav({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
           gap: "var(--space-2)",
         }}
       >
-        {/* Wordmark */}
         <NavLink
           to="/"
           aria-label="Prefect — home"
@@ -126,7 +110,6 @@ function Nav({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
         <NavLink to="/" end className={navClass}>
           Browse
         </NavLink>
-
         <NavLink to="/submit" className={navClass}>
           Submit
         </NavLink>
@@ -175,10 +158,10 @@ export default function App() {
       <Nav theme={theme} onToggle={toggleTheme} />
 
       <Routes>
-        <Route path="/"        element={<BrowsePage />} />
+        <Route path="/"       element={<BrowsePage />} />
         <Route path="/submit" element={<SubmitPage />} />
-        <Route path="/s/:id"  element={<DetailPage />} />
-        <Route path="*"        element={<NotFoundPage />} />
+        <Route path="/s/:id" element={<DetailPage />} />
+        <Route path="*"       element={<NotFoundPage />} />
       </Routes>
 
       <footer
