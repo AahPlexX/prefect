@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Prefect — community-contributed prompts, skills, agents, chains, tools, and personas." />
+    <title>Prefect</title>
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Fonts: Cabinet Grotesk (display) + Satoshi (body) — single Fontshare request -->
+    <link rel="preconnect" href="https://api.fontshare.com" />
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&f[]=satoshi@400,500,700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!--
+      Skip-to-content: WCAG 2.4.1 bypass block.
+      Inline so it is painted before any JS/CSS bundle loads.
+      Visually hidden via position:absolute + top:-9999px;
+      revealed only on :focus so it never affects layout.
+    -->
+    <style>
+      .skip-link {
+        position: absolute;
+        top: -9999px;
+        left: 0;
+        z-index: 9999;
+        padding: 0.75rem 1.25rem;
+        background: #01696f;
+        color: #fff;
+        font-weight: 600;
+        border-radius: 0 0 0.5rem 0;
+        text-decoration: none;
+        white-space: nowrap;
+        font-family: sans-serif;
+        font-size: 0.9rem;
+      }
+      .skip-link:focus {
+        top: 0;
+        outline: 2px solid #fff;
+        outline-offset: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
