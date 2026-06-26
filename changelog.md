@@ -5,60 +5,64 @@
 
 ---
 
-## [2026-06-25] — Response 2: Types, Generators, API Client
+## [2026-06-25] — Response 3: HTML Entry, CSS Tokens, React Bootstrap, App Shell, SPA Redirect
 
 ### Added
 
-- `apps/web/src/types/index.ts`
-  - `ARTIFACT_TYPES` exported as `as const` array — single source of truth for the union type
-  - `ArtifactType` derived from the array (no manual union that could drift)
-  - `ARTIFACT_LABELS` map for human-readable display strings
-  - `Submission`, `SubmissionInput` interfaces mirroring the Worker exactly
-  - `GeneratedArtifact` interface: `{ filename, content, mimeType }` — return type for all generators
-  - `SubmissionsListResponse`, `SubmissionResponse` — typed API response shapes
+- `apps/web/index.html`
+  - `lang="en"` + `data-theme="light"` on `<html>` (WCAG 3.1.1; theme set before JS to prevent flash)
+  - Single Fontshare CDN request: Cabinet Grotesk (400,500,700,800) + Satoshi (400,500,700)
+  - Inline `<style>` for `.skip-link` — painted before any bundle loads, revealed only on `:focus` (WCAG 2.4.1)
+  - `<script type="module" src="/src/main.tsx">` with leading slash (Vite root-relative)
 
-- `apps/web/src/lib/generators.ts`
-  - `generateMarkdown(s)` — full Markdown document with header block, fenced content; triple-backtick sequences escaped to prevent fence breakage
-  - `generateJSON(s)` — pretty-printed `JSON.stringify` of the full Submission
-  - `generatePlainText(s)` — separator-delimited plain text export
-  - `generateAll(s)` — returns all three formats in one call
-  - `downloadArtifact(artifact)` — Blob + object URL download; URL revoked after 100ms to prevent memory leaks
-  - `copyToClipboard(artifact)` — async Clipboard API with try/catch; returns `boolean` so UI can show fallback
+- `apps/web/src/index.css`
+  - `@import "tailwindcss"` — Tailwind v4 syntax (NOT v3 directives)
+  - Full Nexus design token set: surfaces, text levels, primary teal, semantic colors, radius, spacing, fluid type scale, fonts, motion, shadows, layout widths
+  - `[data-theme="dark"]` block with complete dark mode overrides
+  - `@media (prefers-color-scheme: dark) { :root:not([data-theme]) }` system-preference fallback
+  - **shadcn/ui CSS variable bridge** in both light and dark: maps `--background`, `--foreground`, `--card`, `--primary`, `--muted`, `--accent`, `--destructive`, `--border`, `--input`, `--ring`, `--radius`, `--popover` to Nexus tokens so shadcn components and custom components share one token system
+  - Full base reset + `.page-shell` utility class for all route-level `<main>` elements
 
-- `apps/web/src/lib/api.ts`
-  - `ApiError` class with `status: number` — distinguishes network errors (status 0) from HTTP errors
-  - `request<T>()` — internal fetch wrapper; catches network throws, checks `response.ok`, normalizes error messages
-  - `createSubmission(input, signal?)` — POST /api/submissions
-  - `listSubmissions(params?)` — GET /api/submissions with type/limit/cursor query params
-  - `getSubmission(id, signal?)` — GET /api/submissions/:id
-  - `healthCheck(signal?)` — GET /api/health
-  - All functions accept optional `AbortSignal` for request cancellation
+- `apps/web/src/main.tsx`
+  - React 19 `createRoot` from `react-dom/client`
+  - Hard error thrown if `#root` is missing (fails fast with a clear message)
+  - `<StrictMode>` + `<BrowserRouter>` wrapping `<App />`
+  - `index.css` imported before render to prevent FOUC
+
+- `apps/web/src/App.tsx`
+  - `useTheme()` hook: reads system preference on mount, writes `data-theme` attribute on `<html>` via `useEffect`, exposes `toggle` via `useCallback`
+  - `Nav` component: sticky header, wordmark with Layers icon, `NavLink` active-state classes, theme toggle button with correct `aria-label`
+  - Flat `<Routes>`: `/` BrowsePage, `/submit` SubmitPage, `/s/:id` DetailPage, `*` NotFoundPage
+  - All stub pages render `<main id="main-content" className="page-shell">` — correct skip-link target
+  - Footer with `role="contentinfo"`
+
+- `apps/web/public/_redirects`
+  - `/* /index.html 200` — Cloudflare Pages SPA routing; without this, direct `/s/:id` URLs return CF 404
 
 ### Architecture Notes
-- `generators.ts` has zero imports from `api.ts` — no circular dependency possible
-- Base URL is always `/api` (relative) — works in Vite dev proxy and Cloudflare Pages production
-- `ARTIFACT_TYPES as const` + derived union is the canonical DRY pattern for this codebase
+- `data-theme="light"` pre-set in HTML prevents dark flash on light-preference users before JS runs
+- `useTheme` uses in-memory React state only (no localStorage — blocked in sandboxed iframes)
+- shadcn bridge vars are set in both `:root/[data-theme="light"]` AND `[data-theme="dark"]` AND the system-pref fallback block
+
+---
+
+## [2026-06-25] — Response 2: Types, Generators, API Client
+
+### Added
+- `apps/web/src/types/index.ts` — `ARTIFACT_TYPES as const`, derived `ArtifactType` union, `ARTIFACT_LABELS`, `Submission`, `SubmissionInput`, `GeneratedArtifact`, response shapes
+- `apps/web/src/lib/generators.ts` — `generateMarkdown`, `generateJSON`, `generatePlainText`, `generateAll`, `downloadArtifact` (with URL revocation), `copyToClipboard` (returns boolean)
+- `apps/web/src/lib/api.ts` — `ApiError` class, `request<T>` wrapper, `createSubmission`, `listSubmissions`, `getSubmission`, `healthCheck` — all with optional `AbortSignal`
 
 ---
 
 ## [2026-06-25] — Response 1: Initial Scaffold
 
 ### Added
-- `changelog.md` — project changelog
-- `apps/web/package.json` — Vite + React + TypeScript + shadcn/ui + Tailwind CSS v4
-- `workers/api/package.json` — Cloudflare Worker (Hono + TypeScript)
-- `workers/api/wrangler.toml` — Wrangler config with KV namespace bindings
-- `workers/api/src/index.ts` — Full Hono API
-- `apps/web/vite.config.ts` — Vite config with aliases, Tailwind v4 plugin, dev proxy
-- `apps/web/tsconfig.json` — Strict TypeScript 5.7
-
-### Architecture
-- Frontend: Vite + React 19 + TypeScript + shadcn/ui + Tailwind CSS v4 → Cloudflare Pages
-- Backend: Cloudflare Worker (Hono) → no auth, username-only identity
-- Storage: Cloudflare KV, dual-indexed by `id:` and `type:`
-- KV namespace IDs: placeholder until `wrangler kv:namespace create` is run
+- `changelog.md`, `apps/web/package.json`, `workers/api/package.json`, `workers/api/wrangler.toml`
+- `workers/api/src/index.ts` — Full Hono API (POST/GET submissions, health)
+- `apps/web/vite.config.ts`, `apps/web/tsconfig.json`
 
 ### Upcoming (Next Response)
-- `apps/web/index.html` — Vite HTML entry point
-- `apps/web/src/main.tsx` — React + router bootstrap
-- `apps/web/src/App.tsx` — Root component with route definitions
+- `apps/web/src/pages/SubmitPage.tsx` — full submission form with validation, username input, type selector, tag input, content editor, live preview
+- `apps/web/src/pages/BrowsePage.tsx` — paginated grid of submissions with type filter tabs
+- `apps/web/src/pages/DetailPage.tsx` — single artifact view with Markdown/JSON/text export panel
