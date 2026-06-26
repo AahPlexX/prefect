@@ -5,6 +5,51 @@
 
 ---
 
+## [2026-06-25] — Response 4: Pages + CSS
+
+### Added
+
+- `apps/web/src/pages/SubmitPage.tsx`
+  - Full submission form: username (pattern-validated), type selector (all `ARTIFACT_TYPES`), title + char-count, description, monospace content editor, `TagInput` component (Enter/comma to add, × to remove, 8 tag max)
+  - Client-side validation: `validate()` produces typed `Errors` record; `aria-invalid` + `aria-describedby` wired to each field error message for full screen-reader support
+  - Preview flow: on valid submit → `generateAll()` runs client-side → preview panel appears to the right (single column on mobile, 50/50 grid on ≥1024px)
+  - Preview panel: tab bar (Markdown / JSON / Plain Text), syntax-highlighted `<pre>`, Copy (with "✓ Copied" feedback) + Download + Confirm & Submit actions
+  - Post-submit: "done" splash → `setTimeout` redirect to `/s/:id` via `useNavigate`
+  - All interactive elements have min-height 44px (WCAG 2.5.5)
+
+- `apps/web/src/pages/BrowsePage.tsx`
+  - Paginated, filterable grid of all submissions
+  - `filter-bar` tab row: All + one button per `ARTIFACT_TYPE`; changing filter resets pagination, aborts in-flight request via `AbortController`
+  - 8× `SkeletonCard` shimmer while loading first page
+  - `ArtifactCard`: type badge, relative date, title, 2-line clamped description, author + tags in footer; entire card is a `<Link>` with descriptive `aria-label`
+  - Empty state with document SVG + CTA to `/submit`
+  - "Load more" cursor pagination (appends to existing items)
+  - Error banner with Retry button
+
+- `apps/web/src/pages/DetailPage.tsx`
+  - Loads single submission via `getSubmission(id)` on mount; AbortController cleanup in `useEffect` return
+  - Loading: inline skeleton matching header + content block proportions
+  - Error / not-found: empty state with alert SVG + link back to browse
+  - Breadcrumb nav (`Browse / [title]`) with `aria-current="page"`
+  - Hero header: type badge, formatted date, h1 title, description, author, tag list
+  - Raw content viewer: scrollable monospace `<pre>` block
+  - `ExportPanel`: same preview tabs + Copy + Download as SubmitPage; artifacts generated from submission data via `generateAll()`
+
+- `apps/web/src/pages/NotFoundPage.tsx`
+  - Minimal 404 empty state with sad-face SVG and link home
+
+- `apps/web/src/styles/pages.css`
+  - Full component stylesheet: buttons (primary, ghost), form fields (input/select/textarea), tag chips, submit layout (1→2 col), preview/export panel, browse grid, artifact cards, skeleton shimmer, detail page, empty state, breadcrumb, filter bar
+  - All sizing via CSS token variables (no hardcoded px outside `min()` expressions)
+  - Responsive: mobile-first, breakpoints at 640px and 1024px
+  - `@media (prefers-reduced-motion: reduce)` disables shimmer animation
+  - WCAG touch targets enforced via `.btn` and field `min-height: 44px`
+
+### Updated
+- `changelog.md` — this entry
+
+---
+
 ## [2026-06-25] — Response 3: HTML Entry, CSS Tokens, React Bootstrap, App Shell, SPA Redirect
 
 ### Added
